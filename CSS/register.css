@@ -2,7 +2,18 @@ body{
     background-color: grey;
 }
 
-.container{
-    margin-left: 30%;
-    width: 40%; 
+
+
+.login-tag{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-top: 1%;
+    color:white;
+}
+
+a{
+    text-decoration:underline;
+    font-style: italic;
 }

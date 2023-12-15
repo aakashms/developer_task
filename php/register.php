@@ -25,16 +25,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $addr = $_POST["addr"];
     $password = $_POST["password"];
 
-    $sql = "INSERT INTO users (name, email, address, password) 
-            VALUES ('$name', '$email', '$addr', '$password')";
+    $checkQry = "SELECT * FROM users WHERE email = ?";
+    $checkStmt = $mysqli->prepare($checkQry);
+    $checkStmt->bind_param("s", $email);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
 
-    if ($mysqli->query($sql) === TRUE) {
-    header("Location: ../login.html");
-    } 
-    else 
-    {
-        echo "Error adding student: " . $mysqli->error;
+    if ($checkResult->num_rows > 0) {
+        
+        echo "user_email";
+    } else{
+        $stmt = $mysqli->prepare("INSERT INTO users (name, email, address, password) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $name, $email, $addr, $password);
+        
+        if ($stmt->execute()) {
+            echo "success";
+        } else {
+            echo "failure";
+        }
+
+        $stmt->close();
     }
+
+   
+
+    
+    $checkStmt->close();
+    $mysqli->close();
 }
 ?>
 

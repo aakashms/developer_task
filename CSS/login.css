@@ -1,0 +1,13 @@
+.signup-tag{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-top: 1%;
+    color:white;
+}
+
+a{
+    text-decoration:underline;
+    font-style: italic;
+}

@@ -1,8 +1,8 @@
 <?php
 
-session_start();
+//session_start();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
+
     $mysql_host = 'localhost';
     $mysql_user = 'root';
     $mysql_password = '';
@@ -18,25 +18,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST["password"];
 
 
-    $sql = "SELECT * FROM users WHERE email = '$email' AND password = '$password'";
-    $result = $mysqli->query($sql);
-    $sql1="SELECT name FROM users WHERE email = '$email'";
-    $name = $mysqli->query($sql1);
-    $sql2="SELECT address FROM users WHERE email = '$email'";
-    $address = $mysqli->query($sql1);
+    $stmt = $mysqli->prepare("SELECT * FROM users WHERE email = ? AND password = ?");
+    $stmt->bind_param("ss", $email, $password);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if ($result->num_rows == 1) {
+    if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         
-        $_SESSION['email'] = $row['email'];
-        $_SESSION['name'] = $row['name'];
-        $_SESSION['address'] = $row['address'];
-        header("Location: ../profile.html");
-    
+        // $_SESSION['email'] = $row['email'];
+        // $_SESSION['name'] = $row['name'];
+        // $_SESSION['address'] = $row['address'];
+
+        $name = $row['name'];
+        $address = $row['address'];
+        
+        $userDetails = array(
+            "email" => $email,
+            "name" => $name,
+            "address" => $address
+        );
+
+        echo json_encode($userDetails);
+
     } else {
-        echo "Invalid username or password";
+        echo "fail";
     }
 
     $mysqli->close();
+    $stmt->close();
 }
 ?>
