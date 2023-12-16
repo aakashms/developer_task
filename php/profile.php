@@ -1,58 +1,90 @@
 <?php
 
-// $redis = new Redis();
-// $redis->connect('127.0.0.1', 6379);
+require __DIR__ . '/../vendor/autoload.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "GET") {
-    
-    if (isset($_GET['email'])) {
-        $email = $_GET['email'];
-        
-        $mysql_host = 'localhost';
-        $mysql_user = 'root';
-        $mysql_password = '';
-        $mysql_db = 'register_details';
+$dbUsername = 'developer';
+$dbPassword = 'DSA6eTZHUzp3ceDh';
 
-        $mysqli = new mysqli($mysql_host, $mysql_user, $mysql_password, $mysql_db);
+$client = new MongoDB\Client(
+    "mongodb+srv://{$dbUsername}:{$dbPassword}@authcluster.wl6e93k.mongodb.net/"
+);
 
-        if ($mysqli->connect_error) {
-            die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
-        }
+    $collection = $client->selectCollection('developer', 'profiles');
 
-        $stmt = $mysqli->prepare("SELECT email, name, address FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    if ($_SERVER["REQUEST_METHOD"] == "GET") {
+        if (isset($_GET['email'])) {
+            $email = $_GET['email'];
 
-        if ($result->num_rows > 0) {
-            $userData = $result->fetch_assoc();
+            $userData = $collection->findOne(['email' => $email]);
 
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode($userData);
+            if ($userData) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode($userData);
+            } else {
+                header('HTTP/1.1 404 Not Found');
+                echo json_encode(['status' => 'error', 'message' => 'User not found']);
+            }
         } else {
-            header('HTTP/1.1 404 Not Found');
-            echo json_encode(['error' => 'User not found']);
+            header('HTTP/1.1 400 Bad Request');
+            echo json_encode(['status' => 'error', 'message' => 'Missing email']);
         }
-
-        $stmt->close();
-        $mysqli->close();
-    } else {
-        header('HTTP/1.1 400 Bad Request');
-        echo json_encode(['error' => 'Missing email']);
+    } if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $email = $_POST['email'];
+        $name = $_POST['name'];
+        $age = $_POST['age'];
+        $dob = $_POST['dob'];
+        $address = $_POST['address'];
+        $phone = $_POST['phone'];
+        $gender = $_POST['gender'];
+        $designation = $_POST['designation'];
+    
+        $existingUser = $collection->findOne(['email' => $email]);
+    
+        try {
+            if ($existingUser) {
+                // Update user data in MongoDB
+                $result = $collection->updateOne(
+                    ['email' => $email],
+                    [
+                        '$set' => [
+                            'name' => $name,
+                            'age' => $age,
+                            'dob' => $dob,
+                            'address' => $address,
+                            'phone' => $phone,
+                            'gender' => $gender,
+                            'designation' => $designation,
+                        ],
+                    ]
+                );
+            } else {
+                // Insert user data into MongoDB
+                $result = $collection->insertOne([
+                    'email' => $email,
+                    'name' => $name,
+                    'age' => $age,
+                    'dob' => $dob,
+                    'address' => $address,
+                    'phone' => $phone,
+                    'gender' => $gender,
+                    'designation' => $designation,
+                ]);
+            }
+    
+            if ($result->getInsertedCount() > 0 || $result->getModifiedCount() > 0) {
+                // Data saved successfully
+                $action = $existingUser ? 'Updated' : 'Submitted';
+                echo json_encode(['status' => 'success', 'message' => "User data $action successfully"]);
+            } else {
+                // Error saving data
+                echo json_encode(['status' => 'error', 'message' => 'Failed to save data']);
+            }
+        } catch (Exception $e) {
+            header('HTTP/1.1 500 Internal Server Error');
+            echo json_encode(['error' => 'Failed to save data: ' . $e->getMessage()]);
+            error_log('MongoDB Error: ' . $e->getMessage());
+        }
     }
-}
 
-    // $response = array();
-    // $response['email'] = $_SESSION["email"];
-    // $response['name'] = $_SESSION["name"]; 
-    // $response['address'] = $_SESSION["address"];
-    // header('Content-Type: application/json; charset=utf-8');
-    // echo json_encode($response);
 
 ?>
-   
-   
-
-
-
-
