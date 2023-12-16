@@ -47,8 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 
-   
-
     
     $checkStmt->close();
     $mysqli->close();

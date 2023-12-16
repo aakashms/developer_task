@@ -1,0 +1,14 @@
+.home-tag{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    margin-top: 1%;
+    color:white;
+}
+
+a{
+    text-decoration:underline;
+    font-style: italic;
+    font-size: small;
+}

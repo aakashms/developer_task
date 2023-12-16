@@ -35,12 +35,11 @@ $(document).ready(function () {
       designation: $("#designation").val(),
     };
 
-    // Send updated user data to server for saving
     saveUserData(updatedUserData);
   });
 
   }else {
-    // Handle the case when loggedInUser is not available (e.g., user not logged in)
+  
     alert("User not logged in. Redirecting to login page.");
     window.location.href = "./login.html";
   }
@@ -67,7 +66,7 @@ $(document).ready(function () {
         console.log(xhr.responseText);
         
         if(xhr.status === 404){
-          console.log("User not found, assuming new user.");
+          console.log("User not found, assuming as new user.");
         } else {
           console.error("Failed to fetch user data. Please try again.");
       }
@@ -84,24 +83,24 @@ $(document).ready(function () {
       data: updatedUserData,
       dataType: "json",
       success: function (response) {
-
-        if (response.status === "success") {
-          var action = (response.message.includes("Updated")) ? "updated" : "submitted";
-          alert("User data " + action + " successfully!");
+        try{
+          if (response && response.status === "success") {
+            var actionMessage = response.action === "inserted" ? "submitted" : "updated";
+            alert(actionMessage + " successfully!");
         } else {
-          alert("Failed to save user data. Please try again.");
+            throw new Error("Invalid response format");
         }
+        }catch (error) {
+                console.error("Error parsing server response:", error);
+                alert("Unexpected Error. Please try again later");
+            }
+        
       },
       error: function (xhr, status, error) {
         console.error("Error saving user data:", error);
-
-        // Check if the response contains a message field
-        var errorMessage = "Unexpected Error. Please try again later";
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-            errorMessage = xhr.responseJSON.message;
-        }
-
-        console.error(errorMessage);
+        console.log(xhr.responseText); 
+        alert("Unexpected Error. Please try again later");
+        
     },
     });
   }

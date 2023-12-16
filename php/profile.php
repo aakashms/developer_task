@@ -28,7 +28,8 @@ $client = new MongoDB\Client(
             header('HTTP/1.1 400 Bad Request');
             echo json_encode(['status' => 'error', 'message' => 'Missing email']);
         }
-    } if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    } 
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email = $_POST['email'];
         $name = $_POST['name'];
         $age = $_POST['age'];
@@ -57,8 +58,11 @@ $client = new MongoDB\Client(
                         ],
                     ]
                 );
+                if ($result->getModifiedCount() > 0) {
+                    $action = 'updated';
+                }
+
             } else {
-                // Insert user data into MongoDB
                 $result = $collection->insertOne([
                     'email' => $email,
                     'name' => $name,
@@ -69,19 +73,21 @@ $client = new MongoDB\Client(
                     'gender' => $gender,
                     'designation' => $designation,
                 ]);
+                if ($result->getInsertedCount() > 0) {
+                    $action = 'inserted';
+                }
             }
-    
-            if ($result->getInsertedCount() > 0 || $result->getModifiedCount() > 0) {
-                // Data saved successfully
-                $action = $existingUser ? 'Updated' : 'Submitted';
-                echo json_encode(['status' => 'success', 'message' => "User data $action successfully"]);
+
+            if (isset($action)) {
+                echo json_encode(['status' => 'success', 'action' => $action]);
             } else {
-                // Error saving data
-                echo json_encode(['status' => 'error', 'message' => 'Failed to save data']);
+                
+                echo json_encode(['status' => 'error', 'message' => 'No action performed']);
             }
+            
         } catch (Exception $e) {
             header('HTTP/1.1 500 Internal Server Error');
-            echo json_encode(['error' => 'Failed to save data: ' . $e->getMessage()]);
+            echo json_encode(['status' => 'error', 'message' => 'Failed to save data: ' . $e->getMessage()]);
             error_log('MongoDB Error: ' . $e->getMessage());
         }
     }
