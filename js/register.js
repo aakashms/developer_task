@@ -21,6 +21,7 @@ $(document).ready(function () {
             
           if (trimRes === "success") {
             window.location.href = "./login.html";
+
           } else if(trimRes === "user_email") {
             alert("You already have an Account. Please log in");
           }else {

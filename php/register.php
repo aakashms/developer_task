@@ -1,6 +1,6 @@
 
 <?php
-
+require 'db.php';
 
 
 // $redis = new Redis();
@@ -8,17 +8,6 @@
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
- 
-    $mysql_host = 'localhost';
-    $mysql_user = 'root';
-    $mysql_password = '';
-    $mysql_db = 'register_details';
-
-    $mysqli = new mysqli($mysql_host, $mysql_user, $mysql_password, $mysql_db);
-
-    if ($mysqli->connect_error) {
-        die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
-    }
 
     $name = $_POST["name"];
     $email = $_POST["email"];

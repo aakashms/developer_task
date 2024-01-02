@@ -1,20 +1,36 @@
 <?php
+require 'db.php';
+require '../vendor/autoload.php';
 
-require __DIR__ . '/../vendor/autoload.php';
 
-$dbUsername = 'developer';
-$dbPassword = 'DSA6eTZHUzp3ceDh';
+$collection = getMongoCollection('developer', 'profiles');
+function fetchUserData($email) {
+    global $collection;
 
-$client = new MongoDB\Client(
-    "mongodb+srv://{$dbUsername}:{$dbPassword}@authcluster.wl6e93k.mongodb.net/"
-);
+    // Check Redis
+    $userData = getUserData($email);
 
-    $collection = $client->selectCollection('developer', 'profiles');
+    if (!$userData) {
+        // If not in Redis, fetch from MongoDB
+        $userData = $collection->findOne(['email' => $email]);
+        if ($userData) {
+            // Store in Redis for future use
+            setUserData($email, $userData);
+        }
+    }
+
+    if ($userData) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($userData);
+    } else {
+        header('HTTP/1.1 404 Not Found');
+        echo json_encode(['status' => 'error', 'message' => 'User not found']);
+    }
+}
 
     if ($_SERVER["REQUEST_METHOD"] == "GET") {
         if (isset($_GET['email'])) {
             $email = $_GET['email'];
-
             $userData = $collection->findOne(['email' => $email]);
 
             if ($userData) {
@@ -38,9 +54,26 @@ $client = new MongoDB\Client(
         $phone = $_POST['phone'];
         $gender = $_POST['gender'];
         $designation = $_POST['designation'];
-    
+
+        // Use Redis to store session data
+        $redisUserData = getUserData($email);
+
+        if ($redisUserData && $redisUserData == [
+        "email" => $email,
+        "name" => $name,
+        "age" => $age,
+        "dob" => $dob,
+        "address" => $address,
+        "phone" => $phone,
+        "gender" => $gender,
+        "designation" => $designation,
+    ]) {
+        echo json_encode(['status' => 'success', 'action' => 'no_changes']);
+        exit;
+    }
+
         $existingUser = $collection->findOne(['email' => $email]);
-    
+
         try {
             if ($existingUser) {
                 // Update user data in MongoDB
@@ -79,6 +112,18 @@ $client = new MongoDB\Client(
             }
 
             if (isset($action)) {
+
+                setUserData($email, [
+                    "email" => $email,
+                    "name" => $name,
+                    "age" => $age,
+                    "dob" => $dob,
+                    "address" => $address,
+                    "phone" => $phone,
+                    "gender" => $gender,
+                    "designation" => $designation,
+                ]);
+                
                 echo json_encode(['status' => 'success', 'action' => $action]);
             } else {
                 
@@ -90,6 +135,7 @@ $client = new MongoDB\Client(
             echo json_encode(['status' => 'error', 'message' => 'Failed to save data: ' . $e->getMessage()]);
             error_log('MongoDB Error: ' . $e->getMessage());
         }
+
     }
 
 
