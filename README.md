@@ -9,6 +9,9 @@ Now, I'm learning how to implement redis with PHP for this project.
 For run this project, clone this repository and use XAMPP control panel for php usage.
 
 Put the project in htdocs folder.
+Requires extensions for connecting MongoDB,Redis.
+Add required extensions in the "ext" folder.
+Update it in php.ini file.
 
 Run Apache, Mysql to start the server.
 
